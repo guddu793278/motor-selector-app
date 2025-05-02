@@ -7,8 +7,8 @@ g = 9.81
 theta_deg = 20
 theta_rad = math.radians(theta_deg)
 mu = 0.5
-FOS = 2.5
-efficiency = 0.75
+FOS = 2.0
+efficiency = 0.80
 R_drive_roof = 0.02
 R_drive_shade = 0.015
 
