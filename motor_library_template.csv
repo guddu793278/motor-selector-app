@@ -1,0 +1,4 @@
+Motor Name,Rated Torque (Nm),Operating Voltage (V),RPM,Power (W),Has Curve Only (Yes/No)
+Motor A,15,12,3000,180,YES
+Motor B,8,12,1500,120,YES
+Motor C,25,12,2500,300,YES
