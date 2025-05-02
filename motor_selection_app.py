@@ -2,29 +2,30 @@ import streamlit as st
 import pandas as pd
 import math
 
-# Constants
+# === CONSTANTS ===
 g = 9.81
 theta_deg = 20
 theta_rad = math.radians(theta_deg)
 mu = 0.5
-FOS = 2.5
-efficiency = 0.75
+FOS = 2.0
+efficiency = 0.80
 R_drive_roof = 0.02
 R_drive_shade = 0.015
 
 st.title("Motor Selection Tool for Sunroof and Sunshade System")
 
-# Inputs
+# === USER INPUTS ===
 m_glass = st.number_input("Mass of Glass Panel (kg)", min_value=0.0, step=0.1)
 m_fabric = st.number_input("Mass of Fabric / Sunshade (kg)", min_value=0.0, step=0.1)
 L_arm = st.number_input("Link Arm Length (m)", min_value=0.0, step=0.01)
-motor_file = st.file_uploader("Upload Motor Library CSV (with technical specs)", type=["csv"])
+motor_file = st.file_uploader("Upload Motor Library CSV (with specs only)", type=["csv"])
 
+# === PROCESS ===
 if st.button("Calculate and Select Motor"):
     if m_glass == 0 or L_arm == 0 or motor_file is None:
-        st.error("Please enter all values and upload the motor library.")
+        st.error("Please enter all required values and upload the motor library.")
     else:
-        # Torque calculations
+        # Torque Calculations
         F_tilt = m_glass * g * (math.sin(theta_rad) + mu * math.cos(theta_rad))
         T_tilt = F_tilt * L_arm
         T_tilt_adj = T_tilt * FOS / efficiency
@@ -39,7 +40,8 @@ if st.button("Calculate and Select Motor"):
 
         max_required_torque = max(T_tilt_adj, T_slide_roof_adj, T_slide_shade_adj)
 
-        st.subheader("Calculated Torque Requirements (Adjusted, Nm)")
+        # Show torque results
+        st.subheader("Motor Torque Requirements (Adjusted, Nm)")
         st.write({
             "Tilt": round(T_tilt_adj, 2),
             "Sunroof Slide": round(T_slide_roof_adj, 2),
@@ -47,22 +49,21 @@ if st.button("Calculate and Select Motor"):
             "Max Required Torque": round(max_required_torque, 2)
         })
 
-        # Read motor CSV
+        # Load and filter motor library
         try:
             motor_df = pd.read_csv(motor_file)
 
-            # Filter only motors with specs (exclude 'curve only')
-            filtered_df = motor_df[
-                (motor_df["Has Curve Only (Yes/No)"].str.lower() == "no") &
+            suitable_motors = motor_df[
                 (motor_df["Rated Torque (Nm)"] >= max_required_torque)
             ]
 
-            st.subheader("✅ Suitable Motors Based on Technical Specifications")
-            if not filtered_df.empty:
-                st.dataframe(filtered_df[[
+            st.subheader("✅ Suitable Motors Based on Specifications")
+            if not suitable_motors.empty:
+                st.dataframe(suitable_motors[[
                     "Motor Name", "Rated Torque (Nm)", "Operating Voltage (V)", "RPM", "Power (W)"
                 ]])
             else:
-                st.warning("❌ No motors found with sufficient rated torque.")
+                st.warning("❌ No motors meet the required torque.")
         except Exception as e:
-            st.error(f"Failed to read motor CSV: {e}")
+            st.error(f"Error reading motor library: {e}")
+
